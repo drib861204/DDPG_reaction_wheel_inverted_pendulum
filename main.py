@@ -368,8 +368,7 @@ for ep in range(total_episodes):
         action = policy(tf_prev_state, ou_noise)
         # Recieve state and reward from environment.
         state, reward, done = env.step(action)
-        print(prev_state)
-        print(state)
+
         buffer.record((prev_state, action, reward, state))
         episodic_reward += reward
 
