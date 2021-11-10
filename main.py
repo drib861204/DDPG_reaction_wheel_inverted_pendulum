@@ -61,7 +61,7 @@ Now, let's see how is it implemented.
 """
 
 
-import gym
+#import gym
 import Pendulum
 import tensorflow as tf
 from tensorflow.keras import layers
@@ -90,7 +90,7 @@ print("Min Value of Action ->  {}".format(lower_bound))
 '''
 
 
-#env = Pendulum()
+env = Pendulum()
 
 
 """
