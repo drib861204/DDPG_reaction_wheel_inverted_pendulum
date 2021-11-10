@@ -7,9 +7,14 @@ Description: Pendulum project, built using pygame and math modules.
 Title: wheelPole
 Author: [aimetz](https://github.com/aimetz)
 Last modified: 2021/04/20
+
+Title: gym/gym/envs/classic_control/pendulum.py
+Author: [openai](https://github.com/openai)
+Last modified: 2021/10/31
 """
 import pygame
 from math import pi, sin, cos, floor
+import numpy as np
 
 
 class Pendulum:
@@ -30,16 +35,23 @@ class Pendulum:
     def __init__(self):
         self.theta_rod = 0
         self.theta_wheel = 0
+        self.theta_rod_dot = 0
+        self.theta_wheel_dot = 0
         self.len_rod = 100
         self.len_wheel = 200
         self.mass_rod = 10
         self.mass_wheel = 50
         self.momentum_rod = 5
         self.momentum_wheel = 10
+        self.dt = 0.05
+        self.gravity = 9.8
+        self.max_speed = 8
 
-        height = 600
         width = 800
-        gravity = 0.01
+        height = 600
+        self.origin_x = width//2
+        self.origin_y = height // 2
+
         screen = pygame.display.set_mode((width, height))
         pygame.display.set_caption("Pendulum Simulation")
         pygame.init()
@@ -62,7 +74,9 @@ class Pendulum:
     def reset(self):
         self.theta_rod = pi/18
         self.theta_wheel = 0
-        state = [theta_rod, theta_wheel]
+        self.theta_rod_dot = 0
+        self.theta_wheel_dot = 0
+        state = np.array([self.theta_rod, self.theta_wheel, self.theta_rod_dot, self.theta_wheel_dot], dtype=np.float32)
         return state
 
 
@@ -71,65 +85,93 @@ class Pendulum:
 
 
     def step(self, action):
+        thrd = self.theta_rod
+        thwl = self.theta_wheel
+        trdt = self.theta_rod_dot
+        twdt = self.theta_wheel_dot
+        lnrd = self.len_rod
+        lnwl = self.len_wheel
+        msrd = self.mass_rod
+        mswl = self.mass_wheel
+        mmrd = self.momentum_rod
+        mmwl = self.momentum_wheel
+        dt = self.dt
+        g = self.gravity
+
         torque = action
-        eff_momentum_1 = self.mass_rod*self.len_rod**2+self.mass_wheel*self.len_wheel**2+self.momentum_rod+self.momentum_wheel
-        eff_momentum_2 = self.momentum_wheel
-        #state =
+        effmm1 = msrd*lnrd**2+mswl*lnwl**2+mmrd+mmwl
+        effmm2 = mmwl
+        a = (msrd*lnrd+mswl*lnwl)*g*sin(thrd)
+
+        newtrdt = trdt + ((a-torque)/(effmm1-effmm2))*dt
+        newtrdt = np.clip(newtrdt, -self.max_speed, self.max_speed)
+        newthrd = thrd + newtrdt * dt
+
+        newtwdt = twdt + ((torque*effmm1-a*effmm2)/effmm2/(effmm1-effmm2))*dt
+        newtwdt = np.clip(newtwdt, -self.max_speed, self.max_speed)
+        newthwl = thwl + newtwdt * dt
+
+        state = np.array([newthrd[0], newthwl[0], newtrdt[0], newtwdt[0]], dtype=np.float32)
+
+        costs = angle_normalize(thrd)**2 + 0.1 * trdt**2 + 0.001 * torque**2
+
+        return state, -costs, False
 
 
+def angle_normalize(th):
+    return ((th+pi)%(2*pi))-pi
 
 
+def draw_text(text, font, text_col, x, y):
+    img = font.render(text, True, text_col)
+    win.blit(img, (x, y))
 
-    def draw_text(text, font, text_col, x, y):
-        img = font.render(text, True, text_col)
-        win.blit(img, (x, y))
 
+def draw(self):
+    # global gravity
+    force = gravity * sin(self.angle)
+    self.angle_acceleration = (-1 * force) / self.len
+    self.angle_velocity += self.angle_acceleration
+    self.angle += self.angle_velocity
 
-    def draw(self):
-        # global gravity
-        force = gravity * sin(self.angle)
-        self.angle_acceleration = (-1 * force) / self.len
-        self.angle_velocity += self.angle_acceleration
-        self.angle += self.angle_velocity
+    self.x = self.len * sin(self.angle) + self.origin.x
+    self.y = self.len * cos(self.angle) + self.origin.y
 
-        self.x = self.len * sin(self.angle) + self.origin.x
-        self.y = self.len * cos(self.angle) + self.origin.y
+    self.origin.draw()
+    pygame.draw.line(win, (216, 233, 168), (self.origin.x, self.origin.y), (self.x, self.y))
+    pygame.draw.circle(win, self.color, (self.x, self.y), self.radius)
 
-        self.origin.draw()
-        pygame.draw.line(win, (216, 233, 168), (self.origin.x, self.origin.y), (self.x, self.y))
-        pygame.draw.circle(win, self.color, (self.x, self.y), self.radius)
+    self.timer += 1
 
-        self.timer += 1
+    draw_text(f"Current gravity: {gravity}", debug_font, (255, 255, 255), width // 2, 30)
+    draw_text(f"Current acceleration: {self.angle_acceleration}", debug_font, (255, 255, 255), width // 2, 60)
+    draw_text(f"Current momentum: {self.angle_velocity}", debug_font, (255, 255, 255), width // 2, 90)
+    draw_text(f"Press up or down key to change length! ", hint_font, (255, 255, 255), 10, 30)
+    draw_text(f"Current length: {self.len} ", hint_font, (255, 255, 255), 10, 60)
 
-        draw_text(f"Current gravity: {gravity}", debug_font, (255, 255, 255), width // 2, 30)
-        draw_text(f"Current acceleration: {self.angle_acceleration}", debug_font, (255, 255, 255), width // 2, 60)
-        draw_text(f"Current momentum: {self.angle_velocity}", debug_font, (255, 255, 255), width // 2, 90)
-        draw_text(f"Press up or down key to change length! ", hint_font, (255, 255, 255), 10, 30)
-        draw_text(f"Current length: {self.len} ", hint_font, (255, 255, 255), 10, 60)
-
-        if self.timer > 40:
-            if gravity <= 160:
-                if gravity >= 10:
-                    gravity += 2
+    if self.timer > 40:
+        if gravity <= 160:
+            if gravity >= 10:
+                gravity += 2
+                gravity = floor(gravity)
+            else:
+                if gravity >= 1:
+                    gravity += 1
                     gravity = floor(gravity)
                 else:
-                    if gravity >= 1:
-                        gravity += 1
-                        gravity = floor(gravity)
-                    else:
-                        gravity += .10
-            self.timer = 0
+                    gravity += .10
+        self.timer = 0
 
-    '''
-    def Origin(self, x, y, color=(216, 233, 168)):
-        self.x = x
-        self.y = y
-        self.radius = 10
-        self.color = color
-        
-    def draw_origin(self):
-        pygame.draw.circle(win, self.color, (self.x, self.y), self.radius)
-    '''
+
+def Origin(self, x, y, color=(216, 233, 168)):
+    self.x = x
+    self.y = y
+    self.radius = 10
+    self.color = color
+
+def draw_origin(self):
+    pygame.draw.circle(win, self.color, (self.x, self.y), self.radius)
+
 
 
 def update(window, obj_group):

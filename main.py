@@ -91,6 +91,8 @@ print("Min Value of Action ->  {}".format(lower_bound))
 
 
 env = Pendulum()
+upper_bound = 2
+lower_bound = -2
 
 
 """
@@ -163,10 +165,10 @@ class Buffer:
 
         # Instead of list of tuples as the exp.replay concept go
         # We use different np.arrays for each tuple element
-        self.state_buffer = np.zeros((self.buffer_capacity, num_states))
-        self.action_buffer = np.zeros((self.buffer_capacity, num_actions))
+        self.state_buffer = np.zeros((self.buffer_capacity, 4))
+        self.action_buffer = np.zeros((self.buffer_capacity, 1))
         self.reward_buffer = np.zeros((self.buffer_capacity, 1))
-        self.next_state_buffer = np.zeros((self.buffer_capacity, num_states))
+        self.next_state_buffer = np.zeros((self.buffer_capacity, 4))
 
     # Takes (s,a,r,s') obervation tuple as input
     def record(self, obs_tuple):
@@ -255,7 +257,7 @@ def get_actor():
     # Initialize weights between -3e-3 and 3-e3
     last_init = tf.random_uniform_initializer(minval=-0.003, maxval=0.003)
 
-    inputs = layers.Input(shape=(num_states,))
+    inputs = layers.Input(shape=(4,))
     out = layers.Dense(256, activation="relu")(inputs)
     out = layers.Dense(256, activation="relu")(out)
     outputs = layers.Dense(1, activation="tanh", kernel_initializer=last_init)(out)
@@ -268,12 +270,12 @@ def get_actor():
 
 def get_critic():
     # State as input
-    state_input = layers.Input(shape=(num_states))
+    state_input = layers.Input(shape=(4))
     state_out = layers.Dense(16, activation="relu")(state_input)
     state_out = layers.Dense(32, activation="relu")(state_out)
 
     # Action as input
-    action_input = layers.Input(shape=(num_actions))
+    action_input = layers.Input(shape=(1))
     action_out = layers.Dense(32, activation="relu")(action_input)
 
     # Both are passed through seperate layer before concatenating
@@ -304,7 +306,7 @@ def policy(state, noise_object):
     # We make sure action is within bounds
     legal_action = np.clip(sampled_actions, lower_bound, upper_bound)
 
-    return [np.squeeze(legal_action)]
+    return legal_action
 
 
 """
@@ -359,14 +361,15 @@ for ep in range(total_episodes):
     while True:
         # Uncomment this to see the Actor in action
         # But not in a python notebook.
-        env.render()
+        #env.render()
 
         tf_prev_state = tf.expand_dims(tf.convert_to_tensor(prev_state), 0)
 
         action = policy(tf_prev_state, ou_noise)
         # Recieve state and reward from environment.
-        state, reward, done, info = env.step(action)
-
+        state, reward, done = env.step(action)
+        print(prev_state)
+        print(state)
         buffer.record((prev_state, action, reward, state))
         episodic_reward += reward
 
