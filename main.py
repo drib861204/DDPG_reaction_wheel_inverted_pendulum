@@ -62,7 +62,7 @@ Now, let's see how is it implemented.
 
 
 #import gym
-import Pendulum
+from Pendulum import *
 import tensorflow as tf
 from tensorflow.keras import layers
 import numpy as np
