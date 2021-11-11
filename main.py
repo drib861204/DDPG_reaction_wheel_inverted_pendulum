@@ -362,7 +362,7 @@ for ep in range(total_episodes):
     while True:
         # Uncomment this to see the Actor in action
         # But not in a python notebook.
-        #env.render()
+        env.render()
 
         tf_prev_state = tf.expand_dims(tf.convert_to_tensor(prev_state), 0)
 

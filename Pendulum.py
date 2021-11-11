@@ -32,6 +32,7 @@ class Pendulum:
     #debug_font = pygame.font.SysFont('Bauhuas 93', 30)
     #hint_font = pygame.font.SysFont('Bauhaus 93', 26)
 
+
     def __init__(self):
         self.theta_rod = 0
         self.theta_wheel = 0
@@ -44,18 +45,20 @@ class Pendulum:
         self.mass_wheel = 2
         self.momentum_rod = self.mass_rod*self.len_rod**2/12
         self.momentum_wheel = self.mass_wheel*self.rad_wheel**2/2 #depends on wheel shape
-        self.dt = 0.001
+        self.dt = 0.1
         self.gravity = 9.8
         self.max_speed = 8
 
         width = 800
         height = 600
         self.origin_x = width//2
-        self.origin_y = height // 2
+        self.origin_y = height//2
+        self.POS = np.array([self.origin_x, self.origin_y])
 
-        #screen = pygame.display.set_mode((width, height))
-        #pygame.display.set_caption("Pendulum Simulation")
-        #pygame.init()
+        pygame.init()
+        self.screen = pygame.display.set_mode((width, height))
+        pygame.display.set_caption("Pendulum Simulation")
+
 
         '''
         self.ball_x = 20
@@ -81,7 +84,18 @@ class Pendulum:
         return state
 
 
-    #def render(self):
+    def render(self):
+        SCALE = 100
+        BLACK = (0, 0, 0)
+        WHITE = (255, 255, 255)
+
+        tip_x = self.POS[0]+self.len_wheel*sin(self.theta_rod)*SCALE
+        tip_y = self.POS[1]-self.len_wheel*cos(self.theta_rod)*SCALE
+        POSTIP = np.array([tip_x, tip_y])
+        print(POSTIP)
+        self.screen.fill(WHITE)
+        pygame.draw.line(self.screen, BLACK, self.POS, POSTIP, 1)
+        pygame.display.update()
 
 
 
