@@ -91,8 +91,8 @@ print("Min Value of Action ->  {}".format(lower_bound))
 
 
 env = Pendulum()
-upper_bound = 2
-lower_bound = -2
+upper_bound = 10
+lower_bound = -10
 
 
 """

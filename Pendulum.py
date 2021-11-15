@@ -45,9 +45,9 @@ class Pendulum:
         self.mass_wheel = 2
         self.momentum_rod = self.mass_rod*self.len_rod**2/12
         self.momentum_wheel = self.mass_wheel*self.rad_wheel**2/2 #depends on wheel shape
-        self.dt = 0.1
+        self.dt = 0.001
         self.gravity = 9.8
-        self.max_speed = 8
+        self.max_speed = 100
 
         width = 800
         height = 600
@@ -92,7 +92,7 @@ class Pendulum:
         tip_x = self.POS[0]+self.len_wheel*sin(self.theta_rod)*SCALE
         tip_y = self.POS[1]-self.len_wheel*cos(self.theta_rod)*SCALE
         POSTIP = np.array([tip_x, tip_y])
-        print(POSTIP)
+        #print(POSTIP)
         self.screen.fill(WHITE)
         pygame.draw.line(self.screen, BLACK, self.POS, POSTIP, 1)
         pygame.display.update()
@@ -116,17 +116,28 @@ class Pendulum:
         torque = action
         effmm1 = msrd*lnrd**2+mswl*lnwl**2+mmrd+mmwl
         effmm2 = mmwl
-        a = (msrd*lnrd+mswl*lnwl)*g*sin(thrd)
+        a = (msrd*lnrd+mswl*lnwl)*g*sin(angle_normalize(thrd))
 
         newtrdt = trdt + ((a-torque)/(effmm1-effmm2))*dt
+        #print("rod ang_vel",newtrdt)
         newtrdt = np.clip(newtrdt, -self.max_speed, self.max_speed)
-        newthrd = thrd + newtrdt * dt
+        #print("rod ang_vel",newtrdt)
+        newthrd = angle_normalize(angle_normalize(thrd) + newtrdt * dt)
+        #print("rod angle",newthrd)
 
         newtwdt = twdt + ((torque*effmm1-a*effmm2)/effmm2/(effmm1-effmm2))*dt
         newtwdt = np.clip(newtwdt, -self.max_speed, self.max_speed)
-        newthwl = thwl + newtwdt * dt
-
+        #print("wheel ang_vel",newtwdt)
+        newthwl = angle_normalize(angle_normalize(thwl) + newtwdt * dt)
+        #print("wheel angle",newthwl)
+        #print("torque",torque)
+        #print("\n")
+        #print([torque, newthrd[0], newthwl[0], newtrdt[0], newtwdt[0]])
         state = np.array([newthrd[0], newthwl[0], newtrdt[0], newtwdt[0]], dtype=np.float32)
+        self.theta_rod = newthrd
+        self.theta_wheel = newthwl
+        self.theta_rod_dot = newtrdt
+        self.theta_wheel_dot = newtwdt
 
         costs = angle_normalize(thrd)**2 + 0.1 * trdt**2 + 0.001 * torque**2
 
