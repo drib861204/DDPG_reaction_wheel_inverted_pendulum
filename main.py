@@ -333,7 +333,7 @@ actor_lr = 0.001
 critic_optimizer = tf.keras.optimizers.Adam(critic_lr)
 actor_optimizer = tf.keras.optimizers.Adam(actor_lr)
 
-total_episodes = 100
+total_episodes = 500
 # Discount factor for future rewards
 gamma = 0.99
 # Used to update target networks
@@ -412,11 +412,11 @@ more episodes to obtain good results.
 """
 
 # Save the weights
-actor_model.save_weights("pendulum_actor.h5")
-critic_model.save_weights("pendulum_critic.h5")
+actor_model.save_weights("C:\Users\Ben\PycharmProjects\pythonProject6\DDPG_reaction_wheel_inverted_pendulum\pendulum_actor.h5")
+critic_model.save_weights("C:\Users\Ben\PycharmProjects\pythonProject6\DDPG_reaction_wheel_inverted_pendulum\pendulum_critic.h5")
 
-target_actor.save_weights("pendulum_target_actor.h5")
-target_critic.save_weights("pendulum_target_critic.h5")
+target_actor.save_weights("C:\Users\Ben\PycharmProjects\pythonProject6\DDPG_reaction_wheel_inverted_pendulum\pendulum_target_actor.h5")
+target_critic.save_weights("C:\Users\Ben\PycharmProjects\pythonProject6\DDPG_reaction_wheel_inverted_pendulum\pendulum_target_critic.h5")
 
 """
 Before Training:
