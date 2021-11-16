@@ -26,8 +26,8 @@ class Pendulum:
         self.len_rod = 0.5
         self.len_wheel = 0.9
         self.rad_wheel = 0.1
-        self.mass_rod = 10
-        self.mass_wheel = 2
+        self.mass_rod = 0.1
+        self.mass_wheel = 0.05
         self.momentum_rod = self.mass_rod*self.len_rod**2/12
         self.momentum_wheel = self.mass_wheel*self.rad_wheel**2/2 #depends on wheel shape
         self.dt = 0.001
@@ -44,9 +44,6 @@ class Pendulum:
         self.screen = pygame.display.set_mode((width, height))
         pygame.display.set_caption("Pendulum Simulation")
 
-        '''
-        self.timer = 0
-        '''
 
     def reset(self):
         self.theta_rod = np.random.random()*40*pi/180-20*pi/180

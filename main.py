@@ -91,8 +91,8 @@ print("Min Value of Action ->  {}".format(lower_bound))
 
 
 env = Pendulum()
-upper_bound = 10
-lower_bound = -10
+upper_bound = 10000
+lower_bound = -10000
 
 
 """
@@ -211,7 +211,8 @@ class Buffer:
             # Used `-value` as we want to maximize the value given
             # by the critic for our actions
             actor_loss = -tf.math.reduce_mean(critic_value)
-
+        #print("critic_value",critic_value)
+        #
         actor_grad = tape.gradient(actor_loss, actor_model.trainable_variables)
         actor_optimizer.apply_gradients(
             zip(actor_grad, actor_model.trainable_variables)
@@ -283,6 +284,8 @@ def get_critic():
 
     out = layers.Dense(256, activation="relu")(concat)
     out = layers.Dense(256, activation="relu")(out)
+    out = layers.Dense(256, activation="relu")(out)
+    out = layers.Dense(256, activation="relu")(out)
     outputs = layers.Dense(1)(out)
 
     # Outputs single value for give state-action
@@ -327,13 +330,13 @@ target_actor.set_weights(actor_model.get_weights())
 target_critic.set_weights(critic_model.get_weights())
 
 # Learning rate for actor-critic models
-critic_lr = 0.002
-actor_lr = 0.001
+critic_lr = 0.1
+actor_lr = 0.01
 
 critic_optimizer = tf.keras.optimizers.Adam(critic_lr)
 actor_optimizer = tf.keras.optimizers.Adam(actor_lr)
 
-total_episodes = 1000
+total_episodes = 100
 # Discount factor for future rewards
 gamma = 0.99
 # Used to update target networks
@@ -362,7 +365,7 @@ for ep in range(total_episodes):
     while True:
         # Uncomment this to see the Actor in action
         # But not in a python notebook.
-        #env.render()
+        env.render()
 
         tf_prev_state = tf.expand_dims(tf.convert_to_tensor(prev_state), 0)
 
@@ -388,6 +391,7 @@ for ep in range(total_episodes):
 
     # Mean of last 40 episodes
     avg_reward = np.mean(ep_reward_list[-40:])
+    print("episodic_reward:",episodic_reward)
     print("Episode * {} * Avg Reward is ==> {}".format(ep, avg_reward))
     avg_reward_list.append(avg_reward)
 
